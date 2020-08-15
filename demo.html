@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="https://img.icons8.com/doodle/48/000000/firework-gun.png"
+    />
+    <title>Basic</title>
+  </head>
+  <style>
+    @font-face {
+      font-family: 'Bungee Shade';
+      font-style: normal;
+      font-weight: 600;
+      src: local('Bungee Shade'), local('BungeeShade-Regular'),
+        url(https://fonts.gstatic.com/s/bungeeshade/v6/DtVkJxarWL0t2KdzK3oI_jkc6SjTjQJElg.woff2)
+          format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+        U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193,
+        U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+  </style>
+  <style>
+    :root {
+      --text-color: #fbf38c;
+    }
+    body {
+      background: black;
+    }
+    .text {
+      margin: 20px;
+      padding: 3px 10px 6px 10px;
+      display: inline-block;
+      position: absolute;
+      user-select: none;
+      font-family: 'Bungee Shade', fantasy;
+      font-size: 2.4em;
+      border: 1px solid var(--text-color);
+      border-radius: 16px;
+      color: var(--text-color);
+    }
+  </style>
+  <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.0/anime.min.js"></script>
+    <div class="text">
+      <span>Fireworks!</span>
+    </div>
+    <canvas class="fireworks"></canvas>
+    <script>
+      window.human = true
+      const canvasEl = document.querySelector('.fireworks')
+      const ctx = canvasEl.getContext('2d')
+      const numberOfParticules = 30
+      const pointer = {
+        x: 0,
+        y: 0,
+      }
+      const tap =
+        'ontouchstart' in window || navigator.msMaxTouchPoints
+          ? 'touchstart'
+          : 'mousedown'
+      const colors = ['#FF1461', '#18FF92', '#5A87FF', '#FBF38C']
+
+      function setCanvasSize() {
+        canvasEl.width = window.innerWidth * 2
+        canvasEl.height = window.innerHeight * 2
+        canvasEl.style.width = window.innerWidth + 'px'
+        canvasEl.style.height = window.innerHeight + 'px'
+        canvasEl.getContext('2d').scale(2, 2)
+      }
+
+      function updateCoords(e) {
+        pointer.x = e.clientX || e.touches[0].clientX
+        pointer.y = e.clientY || e.touches[0].clientY
+      }
+
+      function setParticuleDirection(p) {
+        const angle = (anime.random(0, 360) * Math.PI) / 180
+        const value = anime.random(50, 180)
+        const radius = [-1, 1][anime.random(0, 1)] * value
+        return {
+          x: p.x + radius * Math.cos(angle),
+          y: p.y + radius * Math.sin(angle),
+        }
+      }
+
+      function createParticule(x, y) {
+        const p = {}
+        p.x = x
+        p.y = y
+        p.color = colors[anime.random(0, colors.length - 1)]
+        p.radius = anime.random(16, 32)
+        p.endPos = setParticuleDirection(p)
+        p.draw = () => {
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI, true)
+          ctx.fillStyle = p.color
+          ctx.fill()
+        }
+        return p
+      }
+
+      function createCircle(x, y) {
+        const p = {}
+        p.x = x
+        p.y = y
+        p.color = '#FFF'
+        p.radius = 0.1
+        p.alpha = 0.5
+        p.lineWidth = 6
+        p.draw = () => {
+          ctx.globalAlpha = p.alpha
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI, true)
+          ctx.lineWidth = p.lineWidth
+          ctx.strokeStyle = p.color
+          ctx.stroke()
+          ctx.globalAlpha = 1
+        }
+        return p
+      }
+
+      function renderParticule(anim) {
+        // for (let i = 0, len = anim.animatables.length; i < len; i++) {
+        //   anim.animatables[i].target.draw();
+        // }
+        ;[...Array(anim.animatables.length).keys()].map((v, i) =>
+          anim.animatables[i].target.draw()
+        )
+      }
+
+      function animateParticules(x, y) {
+        const particules = [...Array(numberOfParticules).keys()].map(() =>
+          createParticule(x, y)
+        )
+        anime
+          .timeline()
+          .add({
+            targets: particules,
+            x: (p) => p.endPos.x,
+            y: (p) => p.endPos.y,
+            radius: 0.1,
+            duration: anime.random(1200, 1800),
+            easing: 'easeOutExpo',
+            update: renderParticule,
+          })
+          .add({
+            targets: createCircle(x, y),
+            radius: anime.random(80, 160),
+            lineWidth: 0,
+            alpha: {
+              value: 0,
+              easing: 'linear',
+              duration: anime.random(600, 800),
+            },
+            duration: anime.random(1200, 1800),
+            easing: 'easeOutExpo',
+            update: renderParticule,
+            offset: 0,
+          })
+      }
+
+      const render = anime({
+        duration: Infinity,
+        update: () => ctx.clearRect(0, 0, canvasEl.width, canvasEl.height),
+      })
+
+      document.addEventListener(
+        tap,
+        (e) => {
+          window.human = true
+          render.play()
+          updateCoords(e)
+          animateParticules(pointer.x, pointer.y)
+        },
+        false
+      )
+
+      function autoClick() {
+        if (window.human) return
+        const centerX = window.innerWidth / 2
+        const centerY = window.innerHeight / 2
+        animateParticules(
+          anime.random(centerX - 50, centerX + 50),
+          anime.random(centerY - 50, centerY + 50)
+        )
+        anime({ duration: 200 }).finished.then(autoClick)
+      }
+
+      autoClick()
+      setCanvasSize()
+      window.addEventListener('resize', setCanvasSize, false)
+    </script>
+  </body>
+</html>
