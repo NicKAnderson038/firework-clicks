@@ -144,16 +144,27 @@
           complete: removeAnimation,
         });
 
-        const particles = [];
-        for (let i = 0; i < 32; i++) {
-          const particle = new Circle({
-            x: e.pageX,
-            y: e.pageY,
-            fill: currentColor,
-            r: anime.random(24, 48),
-          });
-          particles.push(particle);
-        }
+        const particles = [...Array(32).keys()].map(
+          () =>
+            new Circle({
+              x: e.pageX,
+              y: e.pageY,
+              fill: currentColor,
+              r: anime.random(24, 48),
+            })
+        );
+
+        // const particles = [];
+        // for (let i = 0; i < 32; i++) {
+        //   const particle = new Circle({
+        //     x: e.pageX,
+        //     y: e.pageY,
+        //     fill: currentColor,
+        //     r: anime.random(24, 48),
+        //   });
+        //   particles.push(particle);
+        // }
+
         const particlesAnimation = anime({
           targets: particles,
           x: (particle) => {
