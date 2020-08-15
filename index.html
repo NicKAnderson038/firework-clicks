@@ -114,10 +114,8 @@
           r: targetR,
           duration: Math.max(targetR / 2, minCoverDuration),
           easing: "easeOutQuart",
-          complete: function () {
-            // const element = document.querySelector(".text");
-            // element.style.setProperty("--text-color", bgColor);
-            console.log(bgColor);
+          complete: () => {
+            console.log('%c Color change', `padding: 4px 8px; background: ${bgColor}; color: ${pageFill.fill}`);
             bgColor = pageFill.fill;
             removeAnimation(fillAnimation);
           },
@@ -144,7 +142,7 @@
         });
 
         const particles = [];
-        for (var i = 0; i < 32; i++) {
+        for (let i = 0; i < 32; i++) {
           const particle = new Circle({
             x: e.pageX,
             y: e.pageY,
@@ -155,10 +153,10 @@
         }
         const particlesAnimation = anime({
           targets: particles,
-          x: function (particle) {
+          x: (particle) => {
             return particle.x + anime.random(rippleSize, -rippleSize);
           },
-          y: function (particle) {
+          y: (particle) => {
             return (
               particle.y + anime.random(rippleSize * 1.15, -rippleSize * 1.15)
             );
@@ -241,9 +239,7 @@
       })();
 
       function handleInactiveUser() {
-        const inactive = setTimeout(function () {
-          fauxClick(cW / 2, cH / 2);
-        }, 2000);
+        const inactive = setTimeout(() => fauxClick(cW / 2, cH / 2), 2000);
 
         function clearInactiveTimeout() {
           clearTimeout(inactive);
@@ -256,7 +252,7 @@
       }
 
       function startFauxClicking() {
-        setTimeout(function () {
+        setTimeout(() => {
           fauxClick(
             anime.random(cW * 0.2, cW * 0.8),
             anime.random(cH * 0.2, cH * 0.8)
